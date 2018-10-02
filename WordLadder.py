@@ -2,6 +2,7 @@
 #00963796
 
 from collections import deque
+import sys
 
 #To Run
 #give dictionary and start and end word
@@ -33,13 +34,16 @@ def WordLadder(start, end, dictionary, searchType):
     #add start search space tree
     SearchTree = {}
     SearchTree[start]={"parent": '', "children": FindChildren(start,dictionary), "explored": True }
-
+    #Add those children to the tree
+    for node in SearchTree[start]["children"]:
+        SearchTree[node] = {"parent": start, "explored": False}
+        
     #if start = end; DONE; PRINT
     if(start == end):
         return SearchTree
     
     currentWord = start
-    lastWord = start
+    #lastWord = start
     while(currentWord != end):
         #decide next word
         if searchType == 1:
@@ -52,12 +56,18 @@ def WordLadder(start, end, dictionary, searchType):
         #If no options left it was a failure
         if currentWord == '':
             print("No word ladder found between " + start + " and " + end)
-            exit
+            sys.exit()
             
         #explore the next chosen word
-        SearchTree[currentWord]={"parent": lastWord, "children": FindChildren(currentWord,dictionary), "explored": True }
+        SearchTree[currentWord]["children"]= FindChildren(currentWord,dictionary)
+        SearchTree[currentWord]["explored"]= True
 
-        lastWord = currentWord
+        #Add those children to the tree
+        for node in SearchTree[currentWord]["children"]:
+            #Dont add it if there is already an entry
+            if node not in SearchTree:
+                SearchTree[node] = {"parent": currentWord, "explored": False}
+        #lastWord = currentWord
         
     return SearchTree
 
@@ -86,7 +96,7 @@ def BFS(SearchTree, currentWord, fringe=deque([])):
 
     try:
         nextWord = fringe.popleft()
-        while nextWord in SearchTree:
+        while SearchTree[nextWord]["explored"]== True:
             nextWord = fringe.popleft()
     except IndexError:
         nextWord = ''
@@ -100,7 +110,7 @@ def DFS(SearchTree, currentWord, fringe=deque([])):
 
     try:
         nextWord = fringe.pop()
-        while nextWord in SearchTree:
+        while SearchTree[nextWord]["explored"]== True:
             nextWord = fringe.pop()
     except IndexError:
         nextWord = ''
@@ -120,11 +130,11 @@ def PrintWordLadder(SearchTree, end):
         x = SearchTree[x]["parent"]
     path.insert(0,x)
     
-    print(path[0])
+    print(path[0], end="")
     for x in path[1:] :
-        print(" -> " + x)
+        print(" -> " + x, end="")
     
-    print(SearchTree)
+    #print(SearchTree)
 
 if __name__ == "__main__":
     main()
