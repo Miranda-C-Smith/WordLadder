@@ -10,23 +10,23 @@ import sys
 #To Run
 #give dictionary and start and end word
 #start and end word must be same length
-def main():
+def main(sWord, eWord, sType):
 
     #Get start and end word
-    start = "fall"
-    end = "cook"
+    start = sWord
+    end = eWord
     start.lower()
     end.lower()
 
     #search type; Options: BFS = 1, DFS = 2, Informed = 3
-    searchType = 2
+    searchType = sType
     
     if len(start) != len(end):
         print("Start and End words not the same length. Please enter new words.")
-        exit
+        sys.exit()
         
     #Import Dictionary, only words of same length
-    with open("words4letter.txt") as dictFile:
+    with open("Words.txt") as dictFile:
         dictionary = [ word.strip().lower() for word in dictFile if len(word.strip()) == len(start)]
 
     #find word ladder
@@ -187,4 +187,7 @@ def PrintWordLadder(SearchTree, end):
 
 
 if __name__ == "__main__":
-    main()
+    start = sys.argv[1]
+    end = sys.argv[2]
+    searchType = int(sys.argv[3])
+    main(start, end, searchType)
