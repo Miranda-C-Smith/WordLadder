@@ -2,6 +2,9 @@
 #00963796
 
 from collections import deque
+from collections import Counter
+import queue
+import heapq
 import sys
 
 #To Run
@@ -10,13 +13,13 @@ import sys
 def main():
 
     #Get start and end word
-    start = "fool"
-    end = "pope"
+    start = "fall"
+    end = "cook"
     start.lower()
     end.lower()
 
     #search type; Options: BFS = 1, DFS = 2, Informed = 3
-    searchType = 1
+    searchType = 2
     
     if len(start) != len(end):
         print("Start and End words not the same length. Please enter new words.")
@@ -45,13 +48,14 @@ def WordLadder(start, end, dictionary, searchType):
     currentWord = start
     #lastWord = start
     while(currentWord != end):
+        #print(currentWord)
         #decide next word
         if searchType == 1:
             currentWord = BFS(SearchTree, currentWord)
         elif searchType == 2:
             currentWord = DFS(SearchTree, currentWord)
         else:
-            currentWord = InformedSearch(SearchTree, currentWord)
+            currentWord = InformedSearch(SearchTree, currentWord, end, dictionary)
 
         #If no options left it was a failure
         if currentWord == '':
@@ -117,9 +121,52 @@ def DFS(SearchTree, currentWord, fringe=deque([])):
        
     return nextWord
 
-def InformedSearch():
-    return
+def InformedSearch(SearchTree, currentWord, endWord, dictionary, fringe=[], firstCall = True):
+    #Find the next node to explore, no repeats
+    #Prioritize based on letters correct * rarity score
 
+    #Calculate letter frequencies for current dict only if not already calculated
+    if firstCall:
+        letterFreq = CalcLetterFreqEnglish(dictionary)
+        firstCall = False
+        #print(letterFreq)
+    
+    nextWord = ''
+
+    for child in SearchTree[currentWord]["children"]:
+        #Calculate score and put each child in fringe
+        #lower score is better
+        score = 0
+        for pos in range(len(child)):
+            if child[pos] == endWord[pos]:
+                score +=0 #If the letter is correct score is 0
+            else:
+                score += (1 - letterFreq[child[pos]]) #if incorrect letter score is inverse of frequency
+        
+        heapq.heappush(fringe, (score, child))
+
+    #print(fringe)
+    try:
+        nextWord = heapq.heappop(fringe)[1]
+        while SearchTree[nextWord]["explored"]== True:
+            nextWord = heapq.heappop(fringe)[1]
+    except IndexError:
+        nextWord = ''
+       
+    return nextWord
+
+def CalcLetterFreqEnglish(dictionary):
+    frequencies= Counter()
+    for word in dictionary:
+        for letter in word:
+            frequencies += Counter(letter)
+    total = sum(frequencies.values())
+
+    #make it into percentages
+    frequencies = {k: v / total for k, v in frequencies.items()}
+    return frequencies
+            
+    
 def PrintWordLadder(SearchTree, end):
     #backtrack and find the solution that was found from the graph
     path = []
@@ -134,7 +181,10 @@ def PrintWordLadder(SearchTree, end):
     for x in path[1:] :
         print(" -> " + x, end="")
     
+    #print()
     #print(SearchTree)
+
+
 
 if __name__ == "__main__":
     main()
